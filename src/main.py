@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from sqlmodel import SQLModel
+from src.routes.programa import router as programa_router
 
 from .database.infra import engine
 
@@ -14,6 +15,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.include_router(programa_router)
 
 @app.get("/")
 async def read_root():
