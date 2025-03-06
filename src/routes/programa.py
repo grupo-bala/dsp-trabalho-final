@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from src.models import Programa
 from src.database.infra import get_session
 
-router = APIRouter()
+router = APIRouter(prefix="/programas", tags=["Programas"])
 
 @router.post("/programas/", response_model=Programa)
 def create_programa(programa: Programa, session: Session = Depends(get_session)):
