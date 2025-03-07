@@ -8,8 +8,7 @@ class Municipio(SQLModel, table=True):
     nome: str
     uf: str
     favorecidos: List["Favorecido"] = Relationship(
-        back_populates="municipio",
-        sa_relationship_kwargs={"cascade": "all, delete, delete-orphan"}
+        back_populates="municipio", cascade_delete=True
     )
 
 
@@ -18,35 +17,26 @@ class UnidadeGestora(SQLModel, table=True):
     nome: str
     orgao_nome: str
     transferencias: List["Transferencia"] = Relationship(
-        back_populates="unidade_gestora",
-        sa_relationship_kwargs={"cascade": "all, delete, delete-orphan"}
+        back_populates="unidade_gestora", cascade_delete=True
     )
 
 
 class Favorecido(SQLModel, table=True):
     codigo: str = Field(primary_key=True)
     nome: str
-    municipio_codigo: int = Field(
-        foreign_key="municipio.codigo",
-        sa_column_kwargs={'ondelete': 'CASCADE'}
-    )
+    municipio_codigo: int = Field(foreign_key="municipio.codigo", ondelete="CASCADE")
     municipio: Municipio = Relationship(back_populates="favorecidos")
     transferencias: List["Transferencia"] = Relationship(
-        back_populates="favorecido",
-        sa_relationship_kwargs={"cascade": "all, delete, delete-orphan"}
+        back_populates="favorecido", cascade_delete=True
     )
 
 
 class ProgramaTransferencia(SQLModel, table=True):
     transferencia_id: int = Field(
-        foreign_key="transferencia.id", 
-        primary_key=True,
-        sa_column_kwargs={'ondelete': 'CASCADE'}
+        foreign_key="transferencia.id", primary_key=True, ondelete="CASCADE"
     )
     programa_codigo: int = Field(
-        foreign_key="programa.codigo",
-        primary_key=True,
-        sa_column_kwargs={'ondelete': 'CASCADE'}
+        foreign_key="programa.codigo", primary_key=True, ondelete="CASCADE"
     )
 
 
@@ -54,9 +44,7 @@ class Programa(SQLModel, table=True):
     codigo: int = Field(primary_key=True)
     nome: str
     transferencias: List["Transferencia"] = Relationship(
-        back_populates="programas", 
-        link_model=ProgramaTransferencia,
-        sa_relationship_kwargs={"cascade": "all, delete"}
+        back_populates="programas", link_model=ProgramaTransferencia
     )
 
 
@@ -65,17 +53,11 @@ class Transferencia(SQLModel, table=True):
     tipo: str
     valor: Decimal
     unidade_gestora_codigo: int = Field(
-        foreign_key="unidadegestora.codigo",
-        sa_column_kwargs={'ondelete': 'CASCADE'}
+        foreign_key="unidadegestora.codigo", ondelete="CASCADE"
     )
-    favorecido_codigo: str = Field(
-        foreign_key="favorecido.codigo",
-        sa_column_kwargs={'ondelete': 'CASCADE'}
-    )
+    favorecido_codigo: str = Field(foreign_key="favorecido.codigo", ondelete="CASCADE")
     unidade_gestora: UnidadeGestora = Relationship(back_populates="transferencias")
     favorecido: Favorecido = Relationship(back_populates="transferencias")
     programas: List[Programa] = Relationship(
-        back_populates="transferencias",
-        link_model=ProgramaTransferencia,
-        sa_relationship_kwargs={"cascade": "all, delete"}
+        back_populates="transferencias", link_model=ProgramaTransferencia
     )
