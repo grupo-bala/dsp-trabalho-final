@@ -2,9 +2,10 @@ import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from sqlmodel import SQLModel
-from src.routes.programa import router as programa_router
-from src.routes.transferencia import router as transferencia_router
-from src.routes.unidade_gestora import router as unidade_gestora
+from .routes.programa import router as programa_router
+from .routes.transferencia import router as transferencia_router
+from .routes.unidade_gestora import router as unidade_gestora_router
+from .routes.municipio import router as municipio_router
 from loguru import logger
 from .database.infra import engine
 
@@ -48,8 +49,8 @@ async def log_requests(request: Request, call_next):
 
 app.include_router(programa_router)
 app.include_router(transferencia_router)
-app.include_router(unidade_gestora)
-
+app.include_router(unidade_gestora_router)
+app.include_router(municipio_router)
 
 @app.get("/")
 async def read_root():
