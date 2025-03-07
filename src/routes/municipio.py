@@ -6,6 +6,7 @@ from src.database.infra import get_session
 
 router = APIRouter(prefix="/municipios", tags=["Municípios"])
 
+
 @router.post("/", response_model=Municipio)
 def create_municipio(municipio: Municipio, session: Session = Depends(get_session)):
     try:
@@ -95,7 +96,9 @@ def delete_municipio(codigo: int, session: Session = Depends(get_session)):
 
 
 @router.get("/favorecidos/count")
-def count_favorecidos_por_municipio(session: Session = Depends(get_session)) -> Dict[str, Any]:
+def count_favorecidos_por_municipio(
+    session: Session = Depends(get_session),
+) -> Dict[str, Any]:
     try:
         municipios_com_favorecidos = session.exec(
             select(
@@ -103,12 +106,13 @@ def count_favorecidos_por_municipio(session: Session = Depends(get_session)) -> 
                 Municipio.nome,
                 Municipio.uf,
                 (
-                    select(func.count())
-                    .where(Favorecido.municipio_codigo == Municipio.codigo)
+                    select(func.count()).where(
+                        Favorecido.municipio_codigo == Municipio.codigo
+                    )
                 ).scalar_subquery(),
             )
         ).all()
-        
+
         return {
             "data": [
                 {

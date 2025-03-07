@@ -45,7 +45,7 @@ def read_unidades_gestoras(
             "data": unidades_gestoras,
             "total": total,
             "offset": skip,
-            "limit": limit
+            "limit": limit,
         }
     except Exception as e:
         raise HTTPException(

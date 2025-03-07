@@ -39,12 +39,7 @@ def read_transferencia(
 
         transferencia = session.exec(query.offset(skip).limit(limit)).all()
 
-        return {
-            "data": transferencia,
-            "total": total,
-            "offset": skip,
-            "limit": limit
-        }
+        return {"data": transferencia, "total": total, "offset": skip, "limit": limit}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao buscar transferências: {str(e)}"

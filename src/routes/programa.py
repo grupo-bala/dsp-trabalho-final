@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlmodel import Session, select, func
-from src.models import Programa, ProgramaTransferencia 
+from src.models import Programa, ProgramaTransferencia
 from src.database.infra import get_session
 
 router = APIRouter(prefix="/programas", tags=["Programas"])
@@ -30,7 +30,7 @@ def read_programas(
         query = select(Programa)
         if nome:
             query = query.where(Programa.nome.contains(nome))
-        
+
         total = session.exec(select(func.count()).select_from(Programa)).one()
         programas = session.exec(query.offset(skip).limit(limit)).all()
 
@@ -48,8 +48,11 @@ def read_programa(codigo: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Programa não encontrado")
     return programa
 
+
 @router.put("/{codigo}", response_model=Programa)
-def update_programa(codigo: int, programa_update: Programa, session: Session = Depends(get_session)):
+def update_programa(
+    codigo: int, programa_update: Programa, session: Session = Depends(get_session)
+):
     programa = session.get(Programa, codigo)
     if not programa:
         raise HTTPException(status_code=404, detail="Programa não encontrado")

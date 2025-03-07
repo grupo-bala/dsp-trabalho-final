@@ -37,7 +37,9 @@ def read_favorecidos(
         if codigo is not None:
             query = query.where(Favorecido.codigo == codigo)
         if nome is not None:
-            query = query.where(Favorecido.nome.contains(nome))  # Corrigido o filtro de nome
+            query = query.where(
+                Favorecido.nome.contains(nome)
+            )  # Corrigido o filtro de nome
         if municipio is not None:
             query = query.where(Favorecido.municipio.codigo == municipio)
 
@@ -45,17 +47,11 @@ def read_favorecidos(
 
         favorecidos = session.exec(query.offset(skip).limit(limit)).all()
 
-        return {
-            "data": favorecidos,
-            "total": total,
-            "offset": skip,
-            "limit": limit
-        }
+        return {"data": favorecidos, "total": total, "offset": skip, "limit": limit}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao buscar favorecidos: {str(e)}"
         )
-
 
 
 @router.get("/{codigo}", response_model=Favorecido)
