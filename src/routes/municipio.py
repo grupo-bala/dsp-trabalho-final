@@ -1,13 +1,12 @@
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from src.models import Municipio, Favorecido
 from src.database.infra import get_session
 
-router = APIRouter()
+router = APIRouter(prefix="/municipios", tags=["Municípios"])
 
-
-@router.post("/municipios/", response_model=Municipio)
+@router.post("/", response_model=Municipio)
 def create_municipio(municipio: Municipio, session: Session = Depends(get_session)):
     try:
         session.add(municipio)
@@ -21,7 +20,7 @@ def create_municipio(municipio: Municipio, session: Session = Depends(get_sessio
         )
 
 
-@router.get("/municipios/")
+@router.get("/")
 def read_municipios(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
@@ -38,16 +37,18 @@ def read_municipios(
             query = query.where(Municipio.uf == uf)
         if codigo:
             query = query.where(Municipio.codigo == codigo)
-        total = session.exec(select(Municipio).count()).one()
+
+        total = session.exec(select(func.count()).select_from(Municipio)).one()
         municipios = session.exec(query.offset(skip).limit(limit)).all()
-        return {"total": total, "offset": skip, "limit": limit, "data": municipios}
+
+        return {"data": municipios, "total": total, "offset": skip, "limit": limit}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao buscar municípios: {str(e)}"
         )
 
 
-@router.get("/municipios/{codigo}", response_model=Municipio)
+@router.get("/{codigo}", response_model=Municipio)
 def read_municipio(codigo: int, session: Session = Depends(get_session)):
     municipio = session.get(Municipio, codigo)
     if not municipio:
@@ -55,7 +56,7 @@ def read_municipio(codigo: int, session: Session = Depends(get_session)):
     return municipio
 
 
-@router.put("/municipios/{codigo}", response_model=Municipio)
+@router.put("/{codigo}", response_model=Municipio)
 def update_municipio(
     codigo: int, municipio_update: Municipio, session: Session = Depends(get_session)
 ):
@@ -77,7 +78,7 @@ def update_municipio(
         )
 
 
-@router.delete("/municipios/{codigo}", response_model=Municipio)
+@router.delete("/{codigo}", response_model=Municipio)
 def delete_municipio(codigo: int, session: Session = Depends(get_session)):
     municipio = session.get(Municipio, codigo)
     if not municipio:
@@ -93,8 +94,8 @@ def delete_municipio(codigo: int, session: Session = Depends(get_session)):
         )
 
 
-@router.get("/municipios/favorecidos/count")
-def count_favorecidos_por_municipio(session: Session = Depends(get_session)):
+@router.get("/favorecidos/count")
+def count_favorecidos_por_municipio(session: Session = Depends(get_session)) -> Dict[str, Any]:
     try:
         municipios_com_favorecidos = session.exec(
             select(
@@ -102,12 +103,12 @@ def count_favorecidos_por_municipio(session: Session = Depends(get_session)):
                 Municipio.nome,
                 Municipio.uf,
                 (
-                    select(Favorecido)
+                    select(func.count())
                     .where(Favorecido.municipio_codigo == Municipio.codigo)
-                    .count()
-                ),
+                ).scalar_subquery(),
             )
         ).all()
+        
         return {
             "data": [
                 {
