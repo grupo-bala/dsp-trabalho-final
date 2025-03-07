@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select
-from src.models import Programa
+from sqlmodel import Session, select, func
+from src.models import Programa, ProgramaTransferencia 
 from src.database.infra import get_session
 
 router = APIRouter(prefix="/programas", tags=["Programas"])
@@ -19,21 +19,22 @@ def create_programa(programa: Programa, session: Session = Depends(get_session))
         raise HTTPException(status_code=500, detail=f"Erro ao criar programa: {str(e)}")
 
 
-@router.get("/", response_model=List[Programa])
+@router.get("/", response_model=Dict[str, Any])
 def read_programas(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
-    limit: int = Query(10, le=100),
+    limit: int = Query(10, alias="limit", le=100),
     nome: Optional[str] = Query(None, alias="nome"),
-):
+) -> Dict[str, Any]:
     try:
         query = select(Programa)
         if nome:
-            query = query.where(
-                Programa.nome.contains(nome)
-            )  # Filtra pelo nome do programa
+            query = query.where(Programa.nome.contains(nome))
+        
+        total = session.exec(select(func.count()).select_from(Programa)).one()
         programas = session.exec(query.offset(skip).limit(limit)).all()
-        return programas
+
+        return {"data": programas, "total": total, "offset": skip, "limit": limit}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao buscar programas: {str(e)}"
@@ -47,11 +48,8 @@ def read_programa(codigo: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Programa não encontrado")
     return programa
 
-
 @router.put("/{codigo}", response_model=Programa)
-def update_programa(
-    codigo: int, programa_update: Programa, session: Session = Depends(get_session)
-):
+def update_programa(codigo: int, programa_update: Programa, session: Session = Depends(get_session)):
     programa = session.get(Programa, codigo)
     if not programa:
         raise HTTPException(status_code=404, detail="Programa não encontrado")

@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from src.models import UnidadeGestora
 from src.database.infra import get_session
 
@@ -23,22 +23,33 @@ def create_unidade_gestora(
         )
 
 
-@router.get("/", response_model=List[UnidadeGestora])
+@router.get("/", response_model=Dict[str, Any])
 def read_unidades_gestoras(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
     limit: int = Query(10, le=100),
     orgao_nome: Optional[str] = Query(None, alias="orgao_nome"),
-):
+) -> Dict[str, Any]:
     try:
         query = select(UnidadeGestora)
         if orgao_nome:
             query = query.where(UnidadeGestora.orgao_nome.contains(orgao_nome))
+
+        # Obter o total de unidades gestoras
+        total = session.exec(select(func.count()).select_from(UnidadeGestora)).one()
+
+        # Obter as unidades gestoras com a paginação
         unidades_gestoras = session.exec(query.offset(skip).limit(limit)).all()
-        return unidades_gestoras
+
+        return {
+            "data": unidades_gestoras,
+            "total": total,
+            "offset": skip,
+            "limit": limit
+        }
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Erro ao buscar unidade gestora: {str(e)}"
+            status_code=500, detail=f"Erro ao buscar unidades gestoras: {str(e)}"
         )
 
 

@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from src.models import Favorecido
 from src.database.infra import get_session
 
@@ -22,7 +22,7 @@ def create_favorecido(favorecido: Favorecido, session: Session = Depends(get_ses
         )
 
 
-@router.get("/", response_model=List[Favorecido])
+@router.get("/", response_model=Dict[str, Any])
 def read_favorecidos(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
@@ -30,24 +30,32 @@ def read_favorecidos(
     codigo: Optional[int] = Query(None),
     nome: Optional[str] = Query(None),
     municipio: Optional[int] = Query(None),
-):
+) -> Dict[str, Any]:
     try:
         query = select(Favorecido)
 
         if codigo is not None:
             query = query.where(Favorecido.codigo == codigo)
         if nome is not None:
-            query = query.where(nome in Favorecido.nome)
+            query = query.where(Favorecido.nome.contains(nome))  # Corrigido o filtro de nome
         if municipio is not None:
             query = query.where(Favorecido.municipio.codigo == municipio)
 
+        total = session.exec(select(func.count()).select_from(Favorecido)).one()
+
         favorecidos = session.exec(query.offset(skip).limit(limit)).all()
 
-        return favorecidos
+        return {
+            "data": favorecidos,
+            "total": total,
+            "offset": skip,
+            "limit": limit
+        }
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Erro ao buscar favorecido: {str(e)}"
+            status_code=500, detail=f"Erro ao buscar favorecidos: {str(e)}"
         )
+
 
 
 @router.get("/{codigo}", response_model=Favorecido)

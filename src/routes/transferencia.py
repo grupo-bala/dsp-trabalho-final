@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from src.models import Transferencia
 from src.database.infra import get_session
 
@@ -23,22 +23,31 @@ def create_transferencia(
         )
 
 
-@router.get("/", response_model=List[Transferencia])
+@router.get("/", response_model=Dict[str, Any])
 def read_transferencia(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
     limit: int = Query(10, le=100),
     tipo: Optional[str] = Query(None, alias="tipo"),
-):
+) -> Dict[str, Any]:
     try:
         query = select(Transferencia)
         if tipo:
             query = query.where(Transferencia.tipo.contains(tipo))
+
+        total = session.exec(select(func.count()).select_from(Transferencia)).one()
+
         transferencia = session.exec(query.offset(skip).limit(limit)).all()
-        return transferencia
+
+        return {
+            "data": transferencia,
+            "total": total,
+            "offset": skip,
+            "limit": limit
+        }
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Erro ao buscar transferencia: {str(e)}"
+            status_code=500, detail=f"Erro ao buscar transferências: {str(e)}"
         )
 
 
