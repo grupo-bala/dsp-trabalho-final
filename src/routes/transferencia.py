@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, Query
 from sqlmodel import Session, select, func
-from src.models import Transferencia
+from src.models import Transferencia, UnidadeGestora
 from src.database.infra import get_session
 
 router = APIRouter(prefix="/transferencias", tags=["Transferências"])
@@ -43,6 +43,47 @@ def read_transferencia(
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Erro ao buscar transferências: {str(e)}"
+        )
+
+
+@router.get("/{unidade_gestora}/statistics", response_model=Dict[str, Any])
+def read_transferencia_estatisticas(
+    unidade_gestora: int, session: Session = Depends(get_session)
+) -> Dict[str, Any]:
+    try:
+        resultado = session.exec(
+            select(
+                UnidadeGestora.nome,
+                UnidadeGestora.orgao_nome,
+                func.max(Transferencia.valor),
+                func.min(Transferencia.valor),
+                func.sum(Transferencia.valor),
+                func.round(func.avg(Transferencia.valor), 2),
+                func.count(Transferencia.id),
+            )
+            .join(UnidadeGestora, UnidadeGestora.codigo == Transferencia.unidade_gestora_codigo)
+            .where(Transferencia.unidade_gestora_codigo == unidade_gestora)
+            .group_by(UnidadeGestora.nome, UnidadeGestora.orgao_nome)
+        ).one_or_none()
+
+        if not resultado:
+            raise HTTPException(
+                status_code=404, detail="Nenhuma transferência encontrada para essa unidade gestora"
+            )
+
+        return {
+            "unidade_gestora": resultado[0],
+            "orgao": resultado[1],
+            "transferencia_maxima": resultado[2],
+            "transferencia_minima": resultado[3], 
+            "transferencia_valor_total": resultado[4], 
+            "transferencia_valor_medio": resultado[5],
+            "quantidade_transferencias": resultado[6],
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar estatísticas: {str(e)}"
         )
 
 
