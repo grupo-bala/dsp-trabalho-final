@@ -19,7 +19,7 @@ def create_unidade_gestora(
     except Exception as e:
         session.rollback()
         raise HTTPException(
-            status_code=500, detail=f"Erro ao criar transferencia: {str(e)}"
+            status_code=500, detail=f"Erro ao criar unidade gestora: {str(e)}"
         )
 
 
@@ -38,7 +38,7 @@ def read_transferencia(
         return transferencia
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Erro ao buscar transferencia: {str(e)}"
+            status_code=500, detail=f"Erro ao buscar unidade gestora: {str(e)}"
         )
 
 
@@ -46,7 +46,7 @@ def read_transferencia(
 def read_transferencia(codigo: int, session: Session = Depends(get_session)):
     unidadeGestora = session.get(UnidadeGestora, codigo)
     if not unidadeGestora:
-        raise HTTPException(status_code=404, detail="Transferencia não encontrado")
+        raise HTTPException(status_code=404, detail="Unidade gestora não encontrado")
     return unidadeGestora
 
 
@@ -58,7 +58,7 @@ def update_transferencia(
 ):
     unidadeGestora = session.get(UnidadeGestora, codigo)
     if not unidadeGestora:
-        raise HTTPException(status_code=404, detail="Transferencia não encontrada")
+        raise HTTPException(status_code=404, detail="Unidade gestora não encontrada")
     try:
         update_data = transferencia_update.dict(exclude_unset=True)
         for key, value in update_data.items():
@@ -70,7 +70,7 @@ def update_transferencia(
     except Exception as e:
         session.rollback()
         raise HTTPException(
-            status_code=500, detail=f"Erro ao atualizar unidadeGestora: {str(e)}"
+            status_code=500, detail=f"Erro ao atualizar unidade gestora: {str(e)}"
         )
 
 
@@ -86,5 +86,5 @@ def delete_transferencia(codigo: int, session: Session = Depends(get_session)):
     except Exception as e:
         session.rollback()
         raise HTTPException(
-            status_code=500, detail=f"Erro ao deletar transferencia: {str(e)}"
+            status_code=500, detail=f"Erro ao deletar unidade gestora: {str(e)}"
         )
