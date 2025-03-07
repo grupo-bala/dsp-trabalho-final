@@ -6,7 +6,7 @@ from src.database.infra import get_session
 
 router = APIRouter(prefix="/transferencias", tags=["Transferências"])
 
-@router.post("/transferencias/", response_model=Transferencia)
+@router.post("/", response_model=Transferencia)
 def create_transferencia(transferencia: Transferencia, session: Session = Depends(get_session)):
     try:
         session.add(transferencia)
@@ -17,7 +17,7 @@ def create_transferencia(transferencia: Transferencia, session: Session = Depend
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao criar transferencia: {str(e)}")
 
-@router.get("/transferencias/", response_model=List[Transferencia])
+@router.get("/", response_model=List[Transferencia])
 def read_transferencia(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
@@ -33,14 +33,14 @@ def read_transferencia(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao buscar transferencia: {str(e)}")
 
-@router.get("/transferencias/{codigo}", response_model=Transferencia)
+@router.get("/{codigo}", response_model=Transferencia)
 def read_transferencia(codigo: int, session: Session = Depends(get_session)):
     transferencia = session.get(Transferencia, codigo)
     if not transferencia:
         raise HTTPException(status_code=404, detail="Transferencia não encontrado")
     return transferencia
 
-@router.put("/transferencias/{codigo}", response_model=Transferencia)
+@router.put("/{codigo}", response_model=Transferencia)
 def update_transferencia(codigo: int, transferencia_update: Transferencia, session: Session = Depends(get_session)):
     transferencia = session.get(Transferencia, codigo)
     if not transferencia:
@@ -57,7 +57,7 @@ def update_transferencia(codigo: int, transferencia_update: Transferencia, sessi
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar transferencia: {str(e)}")
 
-@router.delete("/transferencias/{codigo}", response_model=Transferencia)
+@router.delete("/{codigo}", response_model=Transferencia)
 def delete_transferencia(codigo: int, session: Session = Depends(get_session)):
     transferencia = session.get(Transferencia, codigo)
     if not transferencia:
