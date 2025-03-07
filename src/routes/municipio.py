@@ -6,6 +6,7 @@ from src.database.infra import get_session
 
 router = APIRouter()
 
+
 @router.post("/municipios/", response_model=Municipio)
 def create_municipio(municipio: Municipio, session: Session = Depends(get_session)):
     try:
@@ -15,7 +16,10 @@ def create_municipio(municipio: Municipio, session: Session = Depends(get_sessio
         return municipio
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao criar município: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao criar município: {str(e)}"
+        )
+
 
 @router.get("/municipios/")
 def read_municipios(
@@ -24,7 +28,7 @@ def read_municipios(
     limit: int = Query(10, alias="limit", le=100),
     nome: Optional[str] = Query(None, alias="nome"),
     uf: Optional[str] = Query(None, alias="uf"),
-    codigo: Optional[int] = Query(None, alias="codigo")
+    codigo: Optional[int] = Query(None, alias="codigo"),
 ) -> Dict[str, Any]:
     try:
         query = select(Municipio)
@@ -36,14 +40,12 @@ def read_municipios(
             query = query.where(Municipio.codigo == codigo)
         total = session.exec(select(Municipio).count()).one()
         municipios = session.exec(query.offset(skip).limit(limit)).all()
-        return {
-            "total": total,
-            "offset": skip,
-            "limit": limit,
-            "data": municipios
-        }
+        return {"total": total, "offset": skip, "limit": limit, "data": municipios}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar municípios: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar municípios: {str(e)}"
+        )
+
 
 @router.get("/municipios/{codigo}", response_model=Municipio)
 def read_municipio(codigo: int, session: Session = Depends(get_session)):
@@ -52,8 +54,11 @@ def read_municipio(codigo: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Município não encontrado")
     return municipio
 
+
 @router.put("/municipios/{codigo}", response_model=Municipio)
-def update_municipio(codigo: int, municipio_update: Municipio, session: Session = Depends(get_session)):
+def update_municipio(
+    codigo: int, municipio_update: Municipio, session: Session = Depends(get_session)
+):
     municipio = session.get(Municipio, codigo)
     if not municipio:
         raise HTTPException(status_code=404, detail="Município não encontrado")
@@ -67,7 +72,10 @@ def update_municipio(codigo: int, municipio_update: Municipio, session: Session 
         return municipio
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar município: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao atualizar município: {str(e)}"
+        )
+
 
 @router.delete("/municipios/{codigo}", response_model=Municipio)
 def delete_municipio(codigo: int, session: Session = Depends(get_session)):
@@ -80,19 +88,39 @@ def delete_municipio(codigo: int, session: Session = Depends(get_session)):
         return municipio
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao deletar município: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao deletar município: {str(e)}"
+        )
+
 
 @router.get("/municipios/favorecidos/count")
 def count_favorecidos_por_municipio(session: Session = Depends(get_session)):
     try:
-        municipios_com_favorecidos = (
-            session.exec(
-                select(Municipio.codigo, Municipio.nome, Municipio.uf, 
-                       (select(Favorecido).where(Favorecido.municipio_codigo == Municipio.codigo).count())
-                )
-            ).all()
-        )
-        return {"data": [{"codigo_municipio": codigo, "nome": nome, "uf": uf, "numero_de_favorecidos": count}
-                         for codigo, nome, uf, count in municipios_com_favorecidos]}
+        municipios_com_favorecidos = session.exec(
+            select(
+                Municipio.codigo,
+                Municipio.nome,
+                Municipio.uf,
+                (
+                    select(Favorecido)
+                    .where(Favorecido.municipio_codigo == Municipio.codigo)
+                    .count()
+                ),
+            )
+        ).all()
+        return {
+            "data": [
+                {
+                    "codigo_municipio": codigo,
+                    "nome": nome,
+                    "uf": uf,
+                    "numero_de_favorecidos": count,
+                }
+                for codigo, nome, uf, count in municipios_com_favorecidos
+            ]
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar número de favorecidos por município: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erro ao buscar número de favorecidos por município: {str(e)}",
+        )
