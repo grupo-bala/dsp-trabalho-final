@@ -11,4 +11,7 @@ wheels/
 env
 .idea/*
 
+# Logs
+*.log
+
 .env
