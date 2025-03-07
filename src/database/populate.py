@@ -31,7 +31,9 @@ def populate_data():
         session.add_all(municipios)
         session.commit()
 
-        df_unidades = pd.read_csv(os.path.join(dataset_path, "unidades_gestoras_clean.csv"))
+        df_unidades = pd.read_csv(
+            os.path.join(dataset_path, "unidades_gestoras_clean.csv")
+        )
         unidades = []
         for _, row in df_unidades.iterrows():
             unidade = UnidadeGestora(
@@ -43,7 +45,9 @@ def populate_data():
         session.add_all(unidades)
         session.commit()
 
-        df_favorecidos = pd.read_csv(os.path.join(dataset_path, "favorecidos_clean.csv"))
+        df_favorecidos = pd.read_csv(
+            os.path.join(dataset_path, "favorecidos_clean.csv")
+        )
         favorecidos = []
         for _, row in df_favorecidos.iterrows():
             favorecido = Favorecido(
@@ -58,12 +62,16 @@ def populate_data():
         df_programas = pd.read_csv(os.path.join(dataset_path, "programas_clean.csv"))
         programas = []
         for _, row in df_programas.iterrows():
-            programa = Programa(codigo=row["codigo_programa"], nome=row["nome_programa"])
+            programa = Programa(
+                codigo=row["codigo_programa"], nome=row["nome_programa"]
+            )
             programas.append(programa)
         session.add_all(programas)
         session.commit()
 
-        df_transferencias = pd.read_csv(os.path.join(dataset_path, "transferencias_clean.csv"))
+        df_transferencias = pd.read_csv(
+            os.path.join(dataset_path, "transferencias_clean.csv")
+        )
         transferencias = []
         for _, row in df_transferencias.iterrows():
             valor = row["valor"]
@@ -83,7 +91,9 @@ def populate_data():
         session.add_all(transferencias)
         session.commit()
 
-        df_pt = pd.read_csv(os.path.join(dataset_path, "programa_transferencia_clean.csv"))
+        df_pt = pd.read_csv(
+            os.path.join(dataset_path, "programa_transferencia_clean.csv")
+        )
         pt_links = []
         for _, row in df_pt.iterrows():
             link = ProgramaTransferencia(
@@ -99,6 +109,7 @@ def populate_data():
         raise
     finally:
         session.close()
+
 
 if __name__ == "__main__":
     print("Populando o banco de dados...")
