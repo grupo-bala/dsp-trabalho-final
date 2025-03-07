@@ -23,3 +23,8 @@ Rodar o Projeto
 ```
 uv run fastapi dev src/main.py
 ```
+
+Para popular o banco de dados
+```
+python -m src.database.populate  
+```
