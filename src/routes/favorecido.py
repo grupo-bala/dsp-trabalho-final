@@ -39,7 +39,7 @@ def read_favorecidos(
         if nome is not None:
             query = query.where(
                 Favorecido.nome.contains(nome)
-            )  # Corrigido o filtro de nome
+            )
         if municipio is not None:
             query = query.where(Favorecido.municipio.codigo == municipio)
 

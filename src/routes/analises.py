@@ -7,7 +7,6 @@ from src.models import Municipio, UnidadeGestora, Transferencia, Programa, Favor
 router = APIRouter(prefix="/analises", tags=["Análises"])
 
 
-# Método para total de transferências por município
 @router.get("/total-transferencias-por-municipio")
 def get_total_transferencias_por_municipio(
     session: Session = Depends(get_session),
@@ -52,7 +51,6 @@ def get_total_transferencias_por_municipio(
         )
 
 
-# Método para favorecidos por programa
 @router.get("/favorecidos-por-programa")
 def get_favorecidos_por_programa(session: Session = Depends(get_session)) -> List[Dict]:
     try:
@@ -85,7 +83,6 @@ def get_favorecidos_por_programa(session: Session = Depends(get_session)) -> Lis
         )
 
 
-# Método para total de transferências por unidade gestora
 @router.get("/total-transferencias-por-unidade-gestora")
 def get_total_transferencias_por_unidade_gestora(
     session: Session = Depends(get_session),
@@ -130,7 +127,6 @@ def get_total_transferencias_por_unidade_gestora(
         )
 
 
-# Método para programas mais frequentes
 @router.get("/programas-mais-frequentes")
 def get_programas_mais_frequentes(
     session: Session = Depends(get_session),

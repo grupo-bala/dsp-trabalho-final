@@ -35,10 +35,8 @@ def read_unidades_gestoras(
         if orgao_nome:
             query = query.where(UnidadeGestora.orgao_nome.contains(orgao_nome))
 
-        # Obter o total de unidades gestoras
         total = session.exec(select(func.count()).select_from(UnidadeGestora)).one()
 
-        # Obter as unidades gestoras com a paginação
         unidades_gestoras = session.exec(query.offset(skip).limit(limit)).all()
 
         return {
