@@ -6,8 +6,11 @@ from src.database.infra import get_session
 
 router = APIRouter(prefix="/transferencias", tags=["Transferências"])
 
+
 @router.post("/", response_model=Transferencia)
-def create_transferencia(transferencia: Transferencia, session: Session = Depends(get_session)):
+def create_transferencia(
+    transferencia: Transferencia, session: Session = Depends(get_session)
+):
     try:
         session.add(transferencia)
         session.commit()
@@ -15,14 +18,17 @@ def create_transferencia(transferencia: Transferencia, session: Session = Depend
         return transferencia
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao criar transferencia: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao criar transferencia: {str(e)}"
+        )
+
 
 @router.get("/", response_model=List[Transferencia])
 def read_transferencia(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
     limit: int = Query(10, le=100),
-    tipo: Optional[str] = Query(None, alias="tipo")
+    tipo: Optional[str] = Query(None, alias="tipo"),
 ):
     try:
         query = select(Transferencia)
@@ -31,7 +37,10 @@ def read_transferencia(
         transferencia = session.exec(query.offset(skip).limit(limit)).all()
         return transferencia
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar transferencia: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar transferencia: {str(e)}"
+        )
+
 
 @router.get("/{codigo}", response_model=Transferencia)
 def read_transferencia(codigo: int, session: Session = Depends(get_session)):
@@ -40,8 +49,13 @@ def read_transferencia(codigo: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Transferencia não encontrado")
     return transferencia
 
+
 @router.put("/{codigo}", response_model=Transferencia)
-def update_transferencia(codigo: int, transferencia_update: Transferencia, session: Session = Depends(get_session)):
+def update_transferencia(
+    codigo: int,
+    transferencia_update: Transferencia,
+    session: Session = Depends(get_session),
+):
     transferencia = session.get(Transferencia, codigo)
     if not transferencia:
         raise HTTPException(status_code=404, detail="Transferencia não encontrada")
@@ -55,7 +69,10 @@ def update_transferencia(codigo: int, transferencia_update: Transferencia, sessi
         return transferencia
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar transferencia: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao atualizar transferencia: {str(e)}"
+        )
+
 
 @router.delete("/{codigo}", response_model=Transferencia)
 def delete_transferencia(codigo: int, session: Session = Depends(get_session)):
@@ -68,4 +85,6 @@ def delete_transferencia(codigo: int, session: Session = Depends(get_session)):
         return transferencia
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao deletar transferencia: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao deletar transferencia: {str(e)}"
+        )

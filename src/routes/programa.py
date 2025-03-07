@@ -6,6 +6,7 @@ from src.database.infra import get_session
 
 router = APIRouter(prefix="/programas", tags=["Programas"])
 
+
 @router.post("/", response_model=Programa)
 def create_programa(programa: Programa, session: Session = Depends(get_session)):
     try:
@@ -17,21 +18,27 @@ def create_programa(programa: Programa, session: Session = Depends(get_session))
         session.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao criar programa: {str(e)}")
 
+
 @router.get("/", response_model=List[Programa])
 def read_programas(
     session: Session = Depends(get_session),
     skip: int = Query(0, alias="offset", ge=0),
     limit: int = Query(10, le=100),
-    nome: Optional[str] = Query(None, alias="nome")
+    nome: Optional[str] = Query(None, alias="nome"),
 ):
     try:
         query = select(Programa)
         if nome:
-            query = query.where(Programa.nome.contains(nome))  # Filtra pelo nome do programa
+            query = query.where(
+                Programa.nome.contains(nome)
+            )  # Filtra pelo nome do programa
         programas = session.exec(query.offset(skip).limit(limit)).all()
         return programas
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao buscar programas: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao buscar programas: {str(e)}"
+        )
+
 
 @router.get("/{codigo}", response_model=Programa)
 def read_programa(codigo: int, session: Session = Depends(get_session)):
@@ -40,8 +47,11 @@ def read_programa(codigo: int, session: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Programa não encontrado")
     return programa
 
+
 @router.put("/{codigo}", response_model=Programa)
-def update_programa(codigo: int, programa_update: Programa, session: Session = Depends(get_session)):
+def update_programa(
+    codigo: int, programa_update: Programa, session: Session = Depends(get_session)
+):
     programa = session.get(Programa, codigo)
     if not programa:
         raise HTTPException(status_code=404, detail="Programa não encontrado")
@@ -55,7 +65,10 @@ def update_programa(codigo: int, programa_update: Programa, session: Session = D
         return programa
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar programa: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao atualizar programa: {str(e)}"
+        )
+
 
 @router.delete("/{codigo}", response_model=Programa)
 def delete_programa(codigo: int, session: Session = Depends(get_session)):
@@ -68,4 +81,6 @@ def delete_programa(codigo: int, session: Session = Depends(get_session)):
         return programa
     except Exception as e:
         session.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro ao deletar programa: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erro ao deletar programa: {str(e)}"
+        )
