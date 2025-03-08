@@ -29,7 +29,7 @@ def get_total_transferencias_por_estado(
 @router.get("/grafico-transferencias-por-estado")
 def grafico_transferencias_por_estado(session: Session = Depends(get_session)):
     dados = total_transferencias_por_estado(session, 10)
-    
+
     estados = [d["uf"] for d in dados]
     totais = [d["total_transferencias"] for d in dados]
     colors = sns.color_palette("Set3", 10)
@@ -37,15 +37,20 @@ def grafico_transferencias_por_estado(session: Session = Depends(get_session)):
 
     plt.figure(figsize=(10, 8))
     plt.pie(
-        totais, 
-        labels=estados, 
-        autopct="%1.1f%%", 
-        startangle=140, 
-        colors=colors, 
-        wedgeprops={"edgecolor": "black"}
+        totais,
+        labels=estados,
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=colors,
+        wedgeprops={"edgecolor": "black"},
     )
-    
-    plt.title("Distribuição de Transferências pelos 10 Estado Mais Representativos", fontsize=14, fontweight="bold", pad=20)
+
+    plt.title(
+        "Distribuição de Transferências pelos 10 Estado Mais Representativos",
+        fontsize=14,
+        fontweight="bold",
+        pad=20,
+    )
     plt.axis("equal")
 
     img_io = io.BytesIO()
@@ -86,6 +91,7 @@ def get_favorecidos_por_programa(session: Session = Depends(get_session)) -> Lis
             status_code=500,
             detail=f"Erro ao calcular favorecidos por programa: {str(e)}",
         )
+
 
 @router.get("/total-transferencias-por-unidade-gestora")
 def get_total_transferencias_por_unidade_gestora(

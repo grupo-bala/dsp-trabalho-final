@@ -37,9 +37,7 @@ def read_favorecidos(
         if codigo is not None:
             query = query.where(Favorecido.codigo == codigo)
         if nome is not None:
-            query = query.where(
-                Favorecido.nome.contains(nome)
-            )
+            query = query.where(Favorecido.nome.contains(nome))
         if municipio is not None:
             query = query.where(Favorecido.municipio.codigo == municipio)
 

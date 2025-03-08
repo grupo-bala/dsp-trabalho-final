@@ -61,22 +61,26 @@ def read_transferencia_estatisticas(
                 func.round(func.avg(Transferencia.valor), 2),
                 func.count(Transferencia.id),
             )
-            .join(UnidadeGestora, UnidadeGestora.codigo == Transferencia.unidade_gestora_codigo)
+            .join(
+                UnidadeGestora,
+                UnidadeGestora.codigo == Transferencia.unidade_gestora_codigo,
+            )
             .where(Transferencia.unidade_gestora_codigo == unidade_gestora)
             .group_by(UnidadeGestora.nome, UnidadeGestora.orgao_nome)
         ).one_or_none()
 
         if not resultado:
             raise HTTPException(
-                status_code=404, detail="Nenhuma transferência encontrada para essa unidade gestora"
+                status_code=404,
+                detail="Nenhuma transferência encontrada para essa unidade gestora",
             )
 
         return {
             "unidade_gestora": resultado[0],
             "orgao": resultado[1],
             "transferencia_maxima": resultado[2],
-            "transferencia_minima": resultado[3], 
-            "transferencia_valor_total": resultado[4], 
+            "transferencia_minima": resultado[3],
+            "transferencia_valor_total": resultado[4],
             "transferencia_valor_medio": resultado[5],
             "quantidade_transferencias": resultado[6],
         }

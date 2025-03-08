@@ -8,7 +8,7 @@ def total_transferencias_por_estado(session: Session, limit: int = 100) -> List[
         select(
             Municipio.uf,
             func.count(Transferencia.id).label("total_transferencias"),
-            func.sum(Transferencia.valor).label("valor_total")
+            func.sum(Transferencia.valor).label("valor_total"),
         )
         .join(Favorecido, Favorecido.municipio_codigo == Municipio.codigo)
         .join(Transferencia, Transferencia.favorecido_codigo == Favorecido.codigo)
