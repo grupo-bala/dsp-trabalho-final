@@ -1,54 +1,59 @@
-from fastapi import APIRouter, HTTPException, Depends
+import io
+import matplotlib
+import matplotlib.pyplot as plt
+import seaborn as sns
+from fastapi import APIRouter, HTTPException, Depends, Response
 from sqlmodel import Session, select, func
 from typing import List, Dict
 from src.database.infra import get_session
-from src.models import Municipio, UnidadeGestora, Transferencia, Programa, Favorecido
+from src.models import Favorecido, UnidadeGestora, Transferencia, Programa
+from ..services.analises import total_transferencias_por_estado
 
 router = APIRouter(prefix="/analises", tags=["Análises"])
+matplotlib.use("Agg")
 
 
-@router.get("/total-transferencias-por-municipio")
-def get_total_transferencias_por_municipio(
+@router.get("/total-transferencias-por-estado")
+def get_total_transferencias_por_estado(
     session: Session = Depends(get_session),
 ) -> List[Dict]:
     try:
-        result = session.exec(
-            select(
-                Municipio.codigo,
-                Municipio.nome,
-                Municipio.uf,
-                (
-                    select(func.count())
-                    .where(Transferencia.favorecido_codigo == Favorecido.codigo)
-                    .where(Favorecido.municipio_codigo == Municipio.codigo)
-                )
-                .scalar_subquery()
-                .label("total_transferencias"),
-                (
-                    select(func.sum(Transferencia.valor))
-                    .where(Transferencia.favorecido_codigo == Favorecido.codigo)
-                    .where(Favorecido.municipio_codigo == Municipio.codigo)
-                )
-                .scalar_subquery()
-                .label("valor_total"),
-            )
-        ).all()
-
-        return [
-            {
-                "codigo_municipio": codigo,
-                "nome": nome,
-                "uf": uf,
-                "total_transferencias": total_transferencias or 0,
-                "valor_total": valor_total or 0,
-            }
-            for codigo, nome, uf, total_transferencias, valor_total in result
-        ]
+        return total_transferencias_por_estado(session)
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Erro ao calcular total de transferências por município: {str(e)}",
         )
+
+
+@router.get("/grafico-transferencias-por-estado")
+def grafico_transferencias_por_estado(session: Session = Depends(get_session)):
+    dados = total_transferencias_por_estado(session, 10)
+    
+    estados = [d["uf"] for d in dados]
+    totais = [d["total_transferencias"] for d in dados]
+    colors = sns.color_palette("Set3", 10)
+    colors = [color for color in colors]
+
+    plt.figure(figsize=(10, 8))
+    plt.pie(
+        totais, 
+        labels=estados, 
+        autopct="%1.1f%%", 
+        startangle=140, 
+        colors=colors, 
+        wedgeprops={"edgecolor": "black"}
+    )
+    
+    plt.title("Distribuição de Transferências pelos 10 Estado Mais Representativos", fontsize=14, fontweight="bold", pad=20)
+    plt.axis("equal")
+
+    img_io = io.BytesIO()
+    plt.savefig(img_io, format="png", bbox_inches="tight", dpi=100)
+    plt.close()
+
+    img_io.seek(0)
+    return Response(img_io.getvalue(), media_type="image/png")
 
 
 @router.get("/favorecidos-por-programa")
@@ -81,7 +86,6 @@ def get_favorecidos_por_programa(session: Session = Depends(get_session)) -> Lis
             status_code=500,
             detail=f"Erro ao calcular favorecidos por programa: {str(e)}",
         )
-
 
 @router.get("/total-transferencias-por-unidade-gestora")
 def get_total_transferencias_por_unidade_gestora(
