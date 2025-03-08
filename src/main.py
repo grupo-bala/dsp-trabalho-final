@@ -7,6 +7,7 @@ from .routes.transferencia import router as transferencia_router
 from .routes.unidade_gestora import router as unidade_gestora_router
 from .routes.municipio import router as municipio_router
 from .routes.analises import router as analises_router
+from .routes.favorecido import router as favorecido_router
 from loguru import logger
 from .database.infra import engine
 
@@ -51,5 +52,6 @@ async def log_requests(request: Request, call_next):
 app.include_router(programa_router)
 app.include_router(transferencia_router)
 app.include_router(unidade_gestora_router)
+app.include_router(favorecido_router)
 app.include_router(municipio_router)
 app.include_router(analises_router)
